@@ -1,0 +1,51 @@
+{
+	"name": "vite-plugin-utools",
+	"version": "0.0.1",
+	"description": "Utools for Vite",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		}
+	},
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup src/index.ts --target node16 --dts --format cjs,esm ",
+		"release": "bumpp --commit --tag --push && npm publish"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/13enBi/vite-plugin-utools.git"
+	},
+	"keywords": [
+		"vite",
+		"vite-plugin",
+		"utools"
+	],
+	"author": "13enBi",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/13enBi/vite-plugin-utools/issues"
+	},
+	"homepage": "https://github.com/13enBi/vite-plugin-utools#readme",
+	"devDependencies": {
+		"@types/babel__core": "^7.1.16",
+		"@types/node": "^16.11.6",
+		"bumpp": "^7.1.1",
+		"tsup": "^5.5.0",
+		"typescript": "^4.4.4",
+		"vite": "^2.6.13"
+	},
+	"dependencies": {
+		"@babel/core": "^7.16.0",
+		"@babel/helper-module-transforms": "^7.16.0",
+		"@babel/parser": "^7.16.2",
+		"@babel/plugin-transform-modules-commonjs": "^7.16.0",
+		"@babel/plugin-transform-typescript": "^7.16.1"
+	}
+}

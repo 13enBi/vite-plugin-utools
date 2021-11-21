@@ -27,7 +27,7 @@ export const transformExportToAssgin = (varName: string): PluginObj => {
 
 			Program: {
 				exit(path) {
-					const nodes = genStatements(`${varName} = {};`);
+					const nodes = genStatements(`${varName} = Object.create(null);`);
 
 					ensureHoisted(nodes);
 
@@ -40,11 +40,7 @@ export const transformExportToAssgin = (varName: string): PluginObj => {
 
 export const transformPreload = async (sourceCode: string, varName: string) => {
 	const result = await transformAsync(sourceCode, {
-		plugins: [
-			'@babel/plugin-transform-typescript',
-			'@babel/plugin-transform-modules-commonjs',
-			transformExportToAssgin(varName),
-		],
+		plugins: ['@babel/plugin-transform-modules-commonjs', transformExportToAssgin(varName)],
 	});
 
 	return result?.code;

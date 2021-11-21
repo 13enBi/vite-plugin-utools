@@ -19,9 +19,11 @@ const genExternalTemp = (external: string, specifiers: Specifier[]) =>
 			if (localName === 'default') {
 				externalName += `["${localName}"]`;
 			}
-		} else if (t.isImportSpecifier(specifier)) {
+		} else {
 			//@ts-ignore
-			externalName += `["${specifier.imported.name}"]`;
+			const importedName = t.isImportDefaultSpecifier(specifier) ? 'default' : specifier.imported.name;
+
+			externalName += `["${importedName}"]`;
 		}
 
 		temp += `const ${varName} = ${externalName};`;
@@ -30,7 +32,7 @@ const genExternalTemp = (external: string, specifiers: Specifier[]) =>
 	}, '');
 
 export const transformImportToExternal = (sourceExternal: SourceExternal): PluginObj => {
-	const replaceDecl = (path: NodePath<t.ImportDeclaration | t.ExportNamedDeclaration>) => {
+	const transform = (path: NodePath<t.ImportDeclaration | t.ExportNamedDeclaration>) => {
 		const { node } = path;
 		const external = node.source && sourceExternal(node.source.value);
 
@@ -47,9 +49,9 @@ export const transformImportToExternal = (sourceExternal: SourceExternal): Plugi
 		name: 'transform-import-to-external',
 
 		visitor: {
-			ImportDeclaration: replaceDecl,
+			ImportDeclaration: transform,
 
-			ExportNamedDeclaration: replaceDecl,
+			ExportNamedDeclaration: transform,
 		},
 	};
 };

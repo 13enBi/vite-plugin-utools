@@ -43,9 +43,9 @@
 	},
 	"dependencies": {
 		"@babel/core": "^7.16.0",
-		"@babel/helper-module-transforms": "^7.16.0",
 		"@babel/parser": "^7.16.2",
 		"@babel/plugin-transform-modules-commonjs": "^7.16.0",
-		"@babel/plugin-transform-typescript": "^7.16.1"
+		"@rollup/pluginutils": "^4.1.1",
+		"asar": "^3.1.0"
 	}
 }

@@ -1,46 +1,67 @@
-import { Plugin } from 'vite';
-import { resolve, normalize } from 'path';
-import { transformFilter, UTOOLS_EXTERNAL } from './helper';
-import { assginOptions, Options } from './options';
+import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
+import { resolve } from 'path';
+import { createPreloadFilter, transformFilter, UTOOLS_EXTERNAL } from './helper';
+import { resolveOptions, Options } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
+import buildUpx from './buildUpx';
 
 export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
-	const { apiName, preloadPath, preloadName } = assginOptions(options);
-	const preloadFileId = normalize(resolve(process.cwd(), preloadPath));
-	const isIncludePreload = (path: string) => preloadFileId.includes(path);
+	const {
+		external: { api: apiExternal, preload: preloadExternal },
+		preload: { path: preloadPath, watch },
+		buildUpx: buildUpxOptions,
+	} = resolveOptions(options);
+	const preloadFilter = createPreloadFilter(preloadPath);
+
+	let config: ResolvedConfig;
 
 	return {
 		name: 'vite:utools',
 
-		config: () => ({
-			optimizeDeps: { exclude: [apiName] },
+		config: (userConfig) => ({
+			optimizeDeps: { exclude: [apiExternal] },
 			build: {
-				assetsDir: './',
 				rollupOptions: {
+					external: [apiExternal],
 					input: {
-						preload: preloadFileId,
 						index: './index.html',
+						preload: preloadPath,
 					},
 					output: {
-						entryFileNames: '[name].js',
+						entryFileNames: ({ facadeModuleId: id }) =>
+							preloadFilter(id) ? 'preload.js' : `${userConfig.build?.assetsDir || 'assets'}/[name].js`,
 					},
 				},
 			},
 		}),
 
 		transform: (code, id) =>
-			transformFilter(id)
+			!transformFilter(id)
 				? code
-				: isIncludePreload(normalize(id))
-				? transformPreload(code, preloadName)
+				: preloadFilter(id)
+				? transformPreload(code, preloadExternal)
 				: transformExternal(code, (sourcePath) =>
-						sourcePath === apiName
+						sourcePath === apiExternal
 							? UTOOLS_EXTERNAL
-							: isIncludePreload(resolve(id, '../', sourcePath))
-							? preloadName
+							: preloadFilter(resolve(id, '../', sourcePath))
+							? preloadExternal
 							: void 0
 				  ),
+
+		handleHotUpdate: async ({ file }) => {
+			if (watch && preloadFilter(file)) await viteBuild();
+		},
+
+		configResolved: (c) => {
+			config = c;
+		},
+
+		closeBundle: async () => {
+			if (buildUpxOptions) {
+				await buildUpx(config.build.outDir, buildUpxOptions, config.logger);
+			}
+		},
 	};
 };
 

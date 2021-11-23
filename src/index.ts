@@ -1,6 +1,6 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { createPreloadFilter, transformFilter, UTOOLS_EXTERNAL } from './helper';
+import { createPreloadFilter, transformFilter } from './helper';
 import { resolveOptions, Options } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
@@ -43,7 +43,7 @@ export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
 				? transformPreload(code, preloadExternal)
 				: transformExternal(code, (sourcePath) =>
 						sourcePath === apiExternal
-							? UTOOLS_EXTERNAL
+							? 'window.utools'
 							: preloadFilter(resolve(id, '../', sourcePath))
 							? preloadExternal
 							: void 0

@@ -1,4 +1,4 @@
-import { Data, isObject, isUndef, pick } from './helper';
+import { isObject, isUndef } from './helper';
 
 export interface PreloadOptions {
 	path?: string;
@@ -20,10 +20,9 @@ export interface PluginOptions {
 }
 
 export interface BuildUpxOptions {
-	pluginPath: string;
+	pluginPath?: string;
 	outDir?: string;
 	outName?: string;
-	pluginOptions: PluginOptions;
 }
 
 export interface Options {
@@ -47,50 +46,19 @@ const defaultOptions = {
 		path: './src/preload.ts',
 		watch: true,
 	},
-	buildUpx: false,
+	buildUpx: {
+		pluginPath: './plugin.json',
+		outDir: 'upx',
+		outName: '[pluginName]_[version].upx',
+	},
 };
-
-const defaultOut = {
-	outDir: 'upx',
-	outName: '[pluginName]_[version].upx',
-};
-
-const getPackage = () => {
-	try {
-		const pkgJson = require(`${process.cwd()}/package.json`);
-
-		const pkgOpts: Data = pick(pkgJson, ['name', 'description', 'author', 'homepage', 'version']);
-		pkgOpts.pluginName = pkgOpts.name;
-		Reflect.deleteProperty(pkgOpts, 'name');
-
-		return pkgOpts;
-	} catch (error) {
-		return {};
-	}
-};
-
-const resolvePluginOptions = (options: BuildUpxOptions) => ({
-	...getPackage(),
-	...require(options.pluginPath),
-	...options.pluginOptions,
-});
-
-const resolveBuildUpxOptions = (options: BuildUpxOptions) => ({
-	...defaultOut,
-	...options,
-	pluginOptions: resolvePluginOptions(options),
-});
 
 export const resolveOptions = (options: Options): RequiredOptions =>
 	Object.entries(defaultOptions).reduce((ret, [key, v1]) => {
 		// @ts-ignore
 		const v2 = options[key];
 
-		if (key === 'buildUpx') {
-			ret[key] = resolveBuildUpxOptions(v2);
-		} else {
-			ret[key] = isUndef(v2) ? v1 : isObject(v1) && isObject(v2) ? { ...v1, ...v2 } : v1;
-		}
+		ret[key] = isUndef(v2) ? v1 : isObject(v1) && isObject(v2) ? { ...v1, ...v2 } : v1;
 
 		return ret;
 	}, {} as any);

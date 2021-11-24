@@ -3,11 +3,7 @@ import { isObject, isUndef } from './helper';
 export interface PreloadOptions {
 	path?: string;
 	watch?: boolean;
-}
-
-export interface External {
-	api?: string;
-	preload?: string;
+	name?: string;
 }
 
 export interface PluginOptions {
@@ -26,7 +22,7 @@ export interface BuildUpxOptions {
 }
 
 export interface Options {
-	external?: External;
+	external?: string;
 	preload?: PreloadOptions;
 	buildUpx?: BuildUpxOptions | false;
 }
@@ -37,14 +33,12 @@ type NestedRequired<T> = {
 
 export type RequiredOptions = NestedRequired<Options>;
 
-const defaultOptions = {
-	external: {
-		api: 'utools-api-types',
-		preload: 'window.preload',
-	},
+const defaultOptions: RequiredOptions = {
+	external: 'utools-api-types',
 	preload: {
 		path: './src/preload.ts',
 		watch: true,
+		name: 'window.preload',
 	},
 	buildUpx: {
 		pluginPath: './plugin.json',

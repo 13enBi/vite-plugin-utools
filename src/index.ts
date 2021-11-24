@@ -8,8 +8,8 @@ import buildUpx from './buildUpx';
 
 export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
 	const {
-		external: { api: apiExternal, preload: preloadExternal },
-		preload: { path: preloadPath, watch },
+		external: apiExternal,
+		preload: { path: preloadPath, watch, name: preloadName },
 		buildUpx: buildUpxOptions,
 	} = resolveOptions(options);
 	const preloadFilter = createPreloadFilter(preloadPath);
@@ -40,12 +40,12 @@ export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
 			!transformFilter(id)
 				? code
 				: preloadFilter(id)
-				? transformPreload(code, preloadExternal)
+				? transformPreload(code, preloadName)
 				: transformExternal(code, (sourcePath) =>
 						sourcePath === apiExternal
 							? 'window.utools'
 							: preloadFilter(resolve(id, '../', sourcePath))
-							? preloadExternal
+							? preloadName
 							: void 0
 				  ),
 

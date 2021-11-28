@@ -52,7 +52,7 @@ export const resolveOptions = (options: Options): RequiredOptions =>
 		// @ts-ignore
 		const v2 = options[key];
 
-		ret[key] = isUndef(v2) ? v1 : isObject(v1) && isObject(v2) ? { ...v1, ...v2 } : v1;
+		ret[key] = isUndef(v2) ? v1 : isObject(v1) && isObject(v2) ? { ...v1, ...v2 } : v2;
 
 		return ret;
 	}, {} as any);

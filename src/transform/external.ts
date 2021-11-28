@@ -1,5 +1,4 @@
 import { NodePath, PluginObj, transformAsync, types as t } from '@babel/core';
-
 import { genStatements } from '../helper';
 
 type SourceExternal = (source: string) => string | void | undefined | null;
@@ -32,7 +31,7 @@ const genExternalTemp = (external: string, specifiers: Specifier[]) =>
 	}, '');
 
 export const transformImportToExternal = (sourceExternal: SourceExternal): PluginObj => {
-	const transform = (path: NodePath<t.ImportDeclaration | t.ExportNamedDeclaration>) => {
+	const transform = (path: NodePath<any>) => {
 		const { node } = path;
 		const external = node.source && sourceExternal(node.source.value);
 

@@ -15,7 +15,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsup src/index.ts --target node16 --dts --format cjs,esm ",
+		"build": "tsup-node src/index.ts --target node16 --dts --format cjs,esm ",
 		"release": "npm run build && bumpp --commit --tag --push && npm publish"
 	},
 	"repository": {

@@ -9,7 +9,7 @@ import chalk from 'chalk';
 import { Data } from './helper';
 
 const requiredKeys = ['name', 'pluginName', 'description', 'author', 'homepage', 'version'] as const;
-const vaildPluginOptions = (options: PluginOptions) => {
+const validatePluginOptions = (options: PluginOptions) => {
 	requiredKeys.forEach((key) => {
 		if (!options[key]) throw new Error(`plugin ${key} is required`);
 	});
@@ -23,9 +23,9 @@ const formatPluginOptions = (pluginOptions: Data) => {
 	return pluginOptions;
 };
 
-const getPluginOptons = (path: string) => {
+const getPluginOptions = (path: string) => {
 	const pluginOptions = require(path);
-	vaildPluginOptions(pluginOptions);
+	validatePluginOptions(pluginOptions);
 
 	return formatPluginOptions(pluginOptions) as PluginOptions;
 };
@@ -61,7 +61,7 @@ export const buildUpx = async (input: string, buildOptions: BuildUpxOptions, log
 	logger.info(chalk.green('\nbuilding for upx...'));
 
 	try {
-		const pluginOptions = getPluginOptons(buildOptions.pluginPath!);
+		const pluginOptions = getPluginOptions(buildOptions.pluginPath!);
 		await writePluginJson(pluginOptions, input);
 
 		const out = await prepareOutDir(buildOptions, pluginOptions);

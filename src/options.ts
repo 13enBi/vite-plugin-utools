@@ -1,4 +1,4 @@
-import { isObject, isUndef } from './helper';
+import { Data, isObject, isUndef } from './helper';
 
 export interface PreloadOptions {
 	path?: string;
@@ -8,6 +8,8 @@ export interface PreloadOptions {
 
 export interface PluginOptions {
 	name: string;
+	logo: string;
+	features: Data;
 	pluginName?: string;
 	description?: string;
 	author?: string;

@@ -1,6 +1,6 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { createPreloadFilter, transformFilter } from './helper';
+import { createPreloadFilter, isUndef, transformFilter } from './helper';
 import { resolveOptions, Options } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
@@ -20,6 +20,7 @@ export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
 		name: 'vite:utools',
 
 		config: (userConfig) => ({
+			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
 			optimizeDeps: { exclude: [apiExternal] },
 			build: {
 				rollupOptions: {

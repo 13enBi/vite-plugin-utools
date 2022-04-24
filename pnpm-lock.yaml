@@ -9,6 +9,8 @@ specifiers:
   '@types/node': ^16.11.6
   asar: ^3.1.0
   bumpp: ^7.1.1
+  chalk: ^5.0.1
+  picocolors: ^1.0.0
   tsup: ^5.5.0
   typescript: ^4.4.4
   vite: ^2.6.13
@@ -19,6 +21,8 @@ dependencies:
   '@babel/plugin-transform-modules-commonjs': 7.16.0_@babel+core@7.16.0
   '@rollup/pluginutils': 4.1.1
   asar: 3.1.0
+  chalk: 5.0.1
+  picocolors: 1.0.0
 
 devDependencies:
   '@types/babel__core': 7.1.16
@@ -482,6 +486,11 @@ packages:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
     dev: true
+
+  /chalk/5.0.1:
+    resolution: {integrity: sha512-Fo07WOYGqMfCWHOzSXOt2CxDbC6skS/jO9ynEcmpANMoPrD+W1r1K6Vx7iNm+AQmETU1Xr2t+n8nzkV9t6xh3w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+    dev: false
 
   /chokidar/3.5.2:
     resolution: {integrity: sha512-ekGhOnNVPgT77r4K/U3GDhu+FQ2S8TnK/s2KbIGXi0SZWuwkZ2QNyfWdZW+TVfn84DpEP7rLeCt2UI6bJ8GwbQ==}

@@ -1,9 +1,9 @@
 import { transformAsync, PluginObj, types as t } from '@babel/core';
 import { ensureHoisted, genStatements } from '../helper';
 
-export const transformExportToAssgin = (varName: string): PluginObj => {
+export const transformExportToAssign = (varName: string): PluginObj => {
 	return {
-		name: 'transform-export-to-assgin',
+		name: 'transform-export-to-assign',
 
 		visitor: {
 			Identifier(path) {
@@ -40,7 +40,7 @@ export const transformExportToAssgin = (varName: string): PluginObj => {
 
 export const transformPreload = async (sourceCode: string, varName: string) => {
 	const result = await transformAsync(sourceCode, {
-		plugins: ['@babel/plugin-transform-modules-commonjs', transformExportToAssgin(varName)],
+		plugins: ['@babel/plugin-transform-modules-commonjs', transformExportToAssign(varName)],
 	});
 
 	return result?.code;

@@ -25,12 +25,12 @@ export interface BuildUpxOptions {
 
 export interface Options {
 	external?: string;
-	preload?: PreloadOptions;
+	preload?: PreloadOptions | false;
 	buildUpx?: BuildUpxOptions | false;
 }
 
 type NestedRequired<T> = {
-	[P in keyof T]-?: NestedRequired<Exclude<T[P], false | undefined | null>>;
+	[P in keyof T]-?: NestedRequired<Exclude<T[P], undefined | null>>;
 };
 
 export type RequiredOptions = NestedRequired<Options>;

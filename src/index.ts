@@ -1,69 +1,15 @@
-import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
-import { resolve } from 'path';
-import { createPreloadFilter, isUndef, transformFilter } from './helper';
+import { Plugin } from 'vite';
 import { resolveOptions, Options } from './options';
-import transformExternal from './transform/external';
-import transformPreload from './transform/preload';
-import buildUpx from './buildUpx';
+import { apiExternalPlugin, buildUpxPlugin, preloadPlugin } from './plugins';
 
-export const viteUtoolsPlugin = (options: Options = {}): Plugin => {
-	const {
-		external: apiExternal,
-		preload: { path: preloadPath, watch, name: preloadName },
-		buildUpx: buildUpxOptions,
-	} = resolveOptions(options);
-	const preloadFilter = createPreloadFilter(preloadPath);
+export const viteUtoolsPlugin = (options: Options = {}): Plugin[] => {
+	const requiredOptions = resolveOptions(options);
 
-	let config: ResolvedConfig;
-
-	return {
-		name: 'vite:utools',
-
-		config: (userConfig) => ({
-			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
-			optimizeDeps: { exclude: [apiExternal] },
-			build: {
-				rollupOptions: {
-					external: [apiExternal],
-					input: {
-						index: './index.html',
-						preload: preloadPath,
-					},
-					output: {
-						entryFileNames: ({ facadeModuleId: id }) =>
-							preloadFilter(id) ? 'preload.js' : `${userConfig.build?.assetsDir || 'assets'}/[name].js`,
-					},
-				},
-			},
-		}),
-
-		transform: (code, id) =>
-			!transformFilter(id)
-				? code
-				: preloadFilter(id)
-				? transformPreload(code, preloadName)
-				: transformExternal(code, (sourcePath) =>
-						sourcePath === apiExternal
-							? 'window.utools'
-							: preloadFilter(resolve(id, '../', sourcePath))
-							? preloadName
-							: void 0
-				  ),
-
-		handleHotUpdate: async ({ file }) => {
-			if (watch && preloadFilter(file)) await viteBuild();
-		},
-
-		configResolved: (c) => {
-			config = c;
-		},
-
-		closeBundle: async () => {
-			if (buildUpxOptions) {
-				await buildUpx(config.build.outDir, buildUpxOptions, config.logger);
-			}
-		},
-	};
+	return [
+		preloadPlugin(requiredOptions.preload),
+		apiExternalPlugin(requiredOptions.external),
+		buildUpxPlugin(requiredOptions.buildUpx),
+	];
 };
 
 export default viteUtoolsPlugin;

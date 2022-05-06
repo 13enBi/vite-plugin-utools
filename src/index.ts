@@ -8,7 +8,7 @@ export const viteUtoolsPlugin = (options: Options = {}): Plugin[] => {
 	return [
 		preloadPlugin(requiredOptions.preload),
 		apiExternalPlugin(requiredOptions.external),
-		buildUpxPlugin(requiredOptions.buildUpx),
+		buildUpxPlugin(requiredOptions),
 	];
 };
 

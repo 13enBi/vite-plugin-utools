@@ -67,7 +67,7 @@ export const apiExternalPlugin = (apiExternal: RequiredOptions['external']): Plu
 	};
 };
 
-export const buildUpxPlugin = (buildUpxOptions: RequiredOptions['buildUpx']): Plugin => {
+export const buildUpxPlugin = (options: RequiredOptions): Plugin => {
 	let config: ResolvedConfig;
 
 	return {
@@ -77,8 +77,6 @@ export const buildUpxPlugin = (buildUpxOptions: RequiredOptions['buildUpx']): Pl
 			config = c;
 		},
 
-		closeBundle: async () => {
-			if (buildUpxOptions) await buildUpx(config.build.outDir, buildUpxOptions, config.logger);
-		},
+		closeBundle: () => buildUpx(config.build.outDir, options, config.logger),
 	};
 };

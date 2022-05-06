@@ -29,7 +29,7 @@ export interface Options {
 	buildUpx?: BuildUpxOptions | false;
 }
 
-type NestedRequired<T> = {
+export type NestedRequired<T> = {
 	[P in keyof T]-?: NestedRequired<Exclude<T[P], undefined | null>>;
 };
 

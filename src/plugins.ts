@@ -1,6 +1,7 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
 import { createPreloadFilter, getPackageDeps, isUndef, transformFilter } from './helper';
+import { BUILD_UTOOLS_MODE } from './constant';
 import { RequiredOptions } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
@@ -15,32 +16,40 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 	const { path, watch, name } = preloadOptions;
 	const filter = createPreloadFilter(path);
 
+	let config: ResolvedConfig;
+
 	return {
 		name: 'vite:utools-preload',
 
 		config: (userConfig) => ({
 			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
-			build: {
-				rollupOptions: {
-					plugins: [
-						{
-							name: 'preload',
-							transform: (code, id) =>
-								filter(id) ? transformPreload(code, { varName: name, deps: getPackageDeps() }) : code,
-						},
-					],
-					input: {
-						index: './index.html',
-						preload: path,
-					},
-					output: {
-						name: 'preload',
-						entryFileNames: ({ facadeModuleId: id }) =>
-							filter(id) ? 'preload.js' : `${userConfig.build?.assetsDir || 'assets'}/[name].js`,
-					},
-				},
-			},
+			build:
+				userConfig.mode !== BUILD_UTOOLS_MODE
+					? void 0
+					: {
+							// TODO: use build lib options ?
+							emptyOutDir: false,
+							rollupOptions: {
+								plugins: [
+									{
+										name: 'preload',
+										transform: (code, id) =>
+											filter(id)
+												? transformPreload(code, { varName: name, deps: getPackageDeps() })
+												: code,
+									},
+								],
+								input: path,
+								output: {
+									entryFileNames: 'preload.js',
+								},
+							},
+					  },
 		}),
+
+		configResolved: (c) => {
+			config = c;
+		},
 
 		transform: (code, id) =>
 			!transformFilter(id)
@@ -49,6 +58,13 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 
 		handleHotUpdate: async ({ file }) => {
 			if (watch && filter(file)) await viteBuild();
+		},
+
+		closeBundle: async () => {
+			if (config.mode !== BUILD_UTOOLS_MODE)
+				await viteBuild({
+					mode: BUILD_UTOOLS_MODE,
+				});
 		},
 	};
 };
@@ -83,6 +99,8 @@ export const buildUpxPlugin = (options: RequiredOptions): Plugin => {
 			config = c;
 		},
 
-		closeBundle: () => buildUpx(config.build.outDir, options, config.logger),
+		closeBundle: async () => {
+			if (config.mode === BUILD_UTOOLS_MODE) await buildUpx(config.build.outDir, options, config.logger);
+		},
 	};
 };

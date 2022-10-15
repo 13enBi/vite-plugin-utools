@@ -56,7 +56,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 				const declaration = path.node.declaration;
 
 				switch (declaration?.type) {
-					// export const someVar = ...
+					// export const/let/var variable = ... -> varName.variable = ...
 					case 'VariableDeclaration': {
 						const code = declaration.declarations
 							.map((decl) => generatorVariable(decl, varName, declaration.kind))
@@ -67,7 +67,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 						return;
 					}
 
-					// export function func(){}
+					// export function func(){} -> varName.func = function(){}
 					case 'FunctionDeclaration': {
 						const funcName = declaration.id?.name || '';
 						const code = `${joinVarName(varName, funcName)} = ${generator(declaration).code};`;
@@ -76,7 +76,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 						return;
 					}
 
-					// export {...}
+					// export {a, b as c} -> varName.a = a, varName.c = b
 					default: {
 						const code = path.node.specifiers
 							.map((specifier) =>
@@ -92,6 +92,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 			},
 
 			ExportDefaultDeclaration: (path) => {
+                // export default ... -> varName.default = ...
 				replaceByTemplate(
 					path,
 					`${joinVarName(varName, 'default')} = ${generator(path.node.declaration).code};`

@@ -5,10 +5,8 @@ import { unlink, mkdir, writeFile } from 'fs/promises';
 import { createGzip } from 'zlib';
 import { BuildUpxOptions, NestedRequired, PluginOptions, RequiredOptions } from './options';
 import { ResolvedConfig } from 'vite';
-import { Data, isString } from './helper';
+import { Data, isString, cwd } from './helper';
 import colors from 'picocolors';
-
-const cwd = process.cwd();
 
 const requiredKeys = [
 	'name',

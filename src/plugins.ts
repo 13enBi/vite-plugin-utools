@@ -1,6 +1,6 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { createPreloadFilter, isUndef, transformFilter } from './helper';
+import { createPreloadFilter, getPackageDeps, isUndef, transformFilter } from './helper';
 import { RequiredOptions } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
@@ -22,11 +22,19 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
 			build: {
 				rollupOptions: {
+					plugins: [
+						{
+							name: 'preload',
+							transform: (code, id) =>
+								filter(id) ? transformPreload(code, { varName: name, deps: getPackageDeps() }) : code,
+						},
+					],
 					input: {
 						index: './index.html',
 						preload: path,
 					},
 					output: {
+						name: 'preload',
 						entryFileNames: ({ facadeModuleId: id }) =>
 							filter(id) ? 'preload.js' : `${userConfig.build?.assetsDir || 'assets'}/[name].js`,
 					},
@@ -37,8 +45,6 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 		transform: (code, id) =>
 			!transformFilter(id)
 				? code
-				: filter(id)
-				? transformPreload(code, name)
 				: transformExternal(code, (sourcePath) => (filter(resolve(id, '../', sourcePath)) ? name : void 0)),
 
 		handleHotUpdate: async ({ file }) => {

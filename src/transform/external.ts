@@ -1,56 +1,49 @@
-import { NodePath, PluginObj, transformAsync, types as t } from '@babel/core';
-import { genStatements } from '../helper';
+import { PluginObj, transformAsync, types as t } from '@babel/core';
+import { joinVarName, replaceByTemplate } from '../helper';
 
 type SourceExternal = (source: string) => string | void | undefined | null;
-type Specifier = t.ImportDefaultSpecifier | t.ImportSpecifier | t.ImportNamespaceSpecifier | t.ExportSpecifier;
 
-const genExternalTemp = (external: string, specifiers: Specifier[]) =>
-	specifiers.reduce((temp, specifier) => {
-		const localName = specifier.local.name;
-		let varName = localName,
-			externalName = external;
+const getImportNames = (specific: t.ImportSpecifier | t.ImportDefaultSpecifier | t.ImportNamespaceSpecifier) => {
+	switch (specific.type) {
+		case 'ImportSpecifier':
+			return {
+				local: specific.local.name,
+				imported: (specific.imported as t.Identifier).name,
+			};
 
-		if (t.isExportSpecifier(specifier)) {
-			temp += 'export ';
-			//@ts-ignore
-			varName = specifier.exported.name;
+		case 'ImportDefaultSpecifier':
+			return {
+				local: specific.local.name,
+				imported: 'default',
+			};
 
-			if (localName === 'default') {
-				externalName += `["${localName}"]`;
-			}
-		} else {
-			//@ts-ignore
-			const importedName = t.isImportDefaultSpecifier(specifier) ? 'default' : specifier.imported.name;
-
-			externalName += `["${importedName}"]`;
-		}
-
-		temp += `const ${varName} = ${externalName};`;
-
-		return temp;
-	}, '');
+		case 'ImportNamespaceSpecifier':
+			return {
+				local: specific.local.name,
+			};
+	}
+};
 
 export const transformImportToExternal = (sourceExternal: SourceExternal): PluginObj => {
-	const transform = (path: NodePath<any>) => {
-		const { node } = path;
-		const external = node.source && sourceExternal(node.source.value);
-
-		if (!external) return;
-
-		const { specifiers } = node;
-
-		const temp = genExternalTemp(external, specifiers as any);
-
-		temp && path.replaceWithMultiple(genStatements(temp));
-	};
-
 	return {
 		name: 'transform-import-to-external',
 
 		visitor: {
-			ImportDeclaration: transform,
+			ImportDeclaration: (path) => {
+				const sourcePath = path.node.source.value;
+				const external = sourceExternal(sourcePath);
+				if (!external) return;
 
-			ExportNamedDeclaration: transform,
+				const importNames = path.node.specifiers.map(getImportNames);
+				const code = importNames
+					.map(
+						({ local, imported }) =>
+							`const ${local} = ${imported ? joinVarName(external, imported) : external}`
+					)
+					.join(';');
+
+				replaceByTemplate(path, code);
+			},
 		},
 	};
 };

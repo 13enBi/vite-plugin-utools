@@ -1,28 +1,101 @@
 import { transformAsync, PluginObj, types as t } from '@babel/core';
-import { ensureHoisted, genStatements } from '../helper';
+import generator from '@babel/generator';
+import { ensureHoisted, genStatements, joinVarName, replaceByTemplate } from '../helper';
+import { transformImportToExternal } from './external';
+
+const getPatternNames = (pattern: t.PatternLike | t.LVal | t.Expression | null): string[] => {
+	if (!pattern) return [];
+
+	switch (pattern.type) {
+		case 'ArrayPattern':
+			return pattern.elements.map(getPatternNames).flat();
+
+		case 'AssignmentPattern':
+			return getPatternNames(pattern.left);
+
+		case 'Identifier':
+			return [pattern.name];
+
+		case 'ObjectPattern':
+			return pattern.properties
+				.map((prop) => getPatternNames(t.isProperty(prop) ? prop.value : prop.argument))
+				.flat();
+
+		case 'RestElement':
+			return getPatternNames(pattern.argument);
+
+		case 'StringLiteral':
+			return [pattern.value];
+
+		default:
+			return [];
+	}
+};
+
+const generatorVariable = (decl: t.VariableDeclarator, varName: string, kind = 'var') => {
+	const { id, init } = decl;
+
+	if (!init) return '';
+
+	if (t.isIdentifier(id)) return `${joinVarName(varName, id.name)} = ${generator(init).code}`;
+
+	if (t.isArrayPattern(id) || t.isObjectPattern(id)) {
+		const names = getPatternNames(id);
+
+		return `${kind} ${generator(decl).code}; \
+        ${names.map((name) => `${joinVarName(varName, name)} = ${name}`).join(',')}`;
+	}
+};
 
 export const transformExportToAssign = (varName: string): PluginObj => {
 	return {
 		name: 'transform-export-to-assign',
 
 		visitor: {
-			Identifier(path) {
-				if (path.isIdentifier({ name: 'exports' }) && !path.scope.parent) {
-					path.node.name = varName;
+			ExportNamedDeclaration(path) {
+				const declaration = path.node.declaration;
+
+				switch (declaration?.type) {
+					// export const someVar = ...
+					case 'VariableDeclaration': {
+						const code = declaration.declarations
+							.map((decl) => generatorVariable(decl, varName, declaration.kind))
+							.join(';');
+
+						replaceByTemplate(path, code);
+
+						return;
+					}
+
+					// export function func(){}
+					case 'FunctionDeclaration': {
+						const funcName = declaration.id?.name || '';
+						const code = `${joinVarName(varName, funcName)} = ${generator(declaration).code};`;
+						replaceByTemplate(path, code);
+
+						return;
+					}
+
+					// export {...}
+					default: {
+						const code = path.node.specifiers
+							.map((specifier) =>
+								t.isExportSpecifier(specifier) && t.isIdentifier(specifier.exported)
+									? `${joinVarName(varName, specifier.exported.name)} = ${specifier.local.name}`
+									: ''
+							)
+							.join(';');
+
+						replaceByTemplate(path, code);
+					}
 				}
 			},
 
-			MemberExpression(path) {
-				const { node, parent } = path;
-
-				if (
-					t.isIdentifier(node.object, { name: 'Object' }) &&
-					t.isIdentifier(node.property, { name: 'defineProperty' }) &&
-					t.isCallExpression(parent) &&
-					t.isStringLiteral(parent.arguments[1], { value: '__esModule' })
-				) {
-					path.parentPath.remove();
-				}
+			ExportDefaultDeclaration: (path) => {
+				replaceByTemplate(
+					path,
+					`${joinVarName(varName, 'default')} = ${generator(path.node.declaration).code};`
+				);
 			},
 
 			Program: {
@@ -38,9 +111,21 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 	};
 };
 
-export const transformPreload = async (sourceCode: string, varName: string) => {
+const isRelativeModule = (source: string) => source.startsWith('.') || source.startsWith('/');
+
+const noneDepModulesToRequire = (source: string, deps: string[]) => {
+	if (isRelativeModule(source) || deps.some((dep) => source.startsWith(dep))) return;
+
+	return `require('${source}')`;
+};
+
+type Options = { varName: string; deps: string[] };
+export const transformPreload = async (sourceCode: string, { varName, deps }: Options) => {
 	const result = await transformAsync(sourceCode, {
-		plugins: ['@babel/plugin-transform-modules-commonjs', transformExportToAssign(varName)],
+		plugins: [
+			transformImportToExternal((source) => noneDepModulesToRequire(source, deps)),
+			transformExportToAssign(varName),
+		],
 	});
 
 	return result?.code;

@@ -44,6 +44,19 @@ export const transformImportToExternal = (sourceExternal: SourceExternal): Plugi
 
 				replaceByTemplate(path, code);
 			},
+
+			Import: (path) => {
+				if (!t.isCallExpression(path.parent)) return;
+
+				const [source] = path.parent.arguments;
+				if (!t.isStringLiteral(source)) return;
+
+				const sourcePath = source.value;
+				const external = sourceExternal(sourcePath);
+				if (!external) return;
+
+				replaceByTemplate(path.parentPath, `Promise.resolve(${external})`);
+			},
 		},
 	};
 };

@@ -1,7 +1,6 @@
 import { transformAsync, PluginObj, types as t } from '@babel/core';
 import generator from '@babel/generator';
 import { ensureHoisted, genStatements, joinVarName, replaceByTemplate } from '../helper';
-import { transformImportToExternal } from './external';
 
 const getPatternNames = (pattern: t.PatternLike | t.LVal | t.Expression | null): string[] => {
 	if (!pattern) return [];
@@ -92,7 +91,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 			},
 
 			ExportDefaultDeclaration: (path) => {
-                // export default ... -> varName.default = ...
+				// export default ... -> varName.default = ...
 				replaceByTemplate(
 					path,
 					`${joinVarName(varName, 'default')} = ${generator(path.node.declaration).code};`
@@ -112,21 +111,9 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 	};
 };
 
-const isRelativeModule = (source: string) => source.startsWith('.') || source.startsWith('/');
-
-const noneDepModulesToRequire = (source: string, deps: string[]) => {
-	if (isRelativeModule(source) || deps.some((dep) => source.startsWith(dep))) return;
-
-	return `require('${source}')`;
-};
-
-type Options = { varName: string; deps: string[] };
-export const transformPreload = async (sourceCode: string, { varName, deps }: Options) => {
+export const transformPreload = async (sourceCode: string, varName: string) => {
 	const result = await transformAsync(sourceCode, {
-		plugins: [
-			transformImportToExternal((source) => noneDepModulesToRequire(source, deps)),
-			transformExportToAssign(varName),
-		],
+		plugins: [transformExportToAssign(varName)],
 	});
 
 	return result?.code;

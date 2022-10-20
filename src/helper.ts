@@ -1,7 +1,25 @@
 import { types, NodePath } from '@babel/core';
 import { parse } from '@babel/parser';
 import { createFilter } from '@rollup/pluginutils';
-import { resolve } from 'path';
+import { builtinModules } from 'node:module';
+
+const Modules = [
+	...builtinModules,
+	'assert/strict',
+	'diagnostics_channel',
+	'dns/promises',
+	'fs/promises',
+	'path/posix',
+	'path/win32',
+	'readline/promises',
+	'stream/consumers',
+	'stream/promises',
+	'stream/web',
+	'timers/promises',
+	'util/types',
+	'wasi',
+];
+export const NodeBuiltin = [...new Set([...Modules, ...Modules.map((id) => `node:${id}`)])];
 
 export const cwd = process.cwd();
 
@@ -31,12 +49,3 @@ export const joinVarName = (varName: string, prop: string) => `${varName}['${pro
 
 export const replaceByTemplate = <T>(path: NodePath<T>, template: string) =>
 	path.replaceWithMultiple(genStatements(template));
-
-export const getPackageDeps = () => {
-	const { devDependencies, dependencies } = require(resolve(cwd, './package.json'));
-
-	return Object.keys({
-		...devDependencies,
-		...dependencies,
-	});
-};

@@ -1,6 +1,6 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { createPreloadFilter, getPackageDeps, isUndef, transformFilter } from './helper';
+import { NodeBuiltin, createPreloadFilter, isUndef, transformFilter } from './helper';
 import { BUILD_UTOOLS_MODE } from './constant';
 import { RequiredOptions } from './options';
 import transformExternal from './transform/external';
@@ -30,18 +30,18 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 							// TODO: use build lib options ?
 							emptyOutDir: false,
 							rollupOptions: {
+								external: [...NodeBuiltin],
 								plugins: [
 									{
 										name: 'preload',
-										transform: (code, id) =>
-											filter(id)
-												? transformPreload(code, { varName: name, deps: getPackageDeps() })
-												: code,
+										transform: (code, id) => (filter(id) ? transformPreload(code, name) : code),
 									},
 								],
 								input: path,
 								output: {
 									entryFileNames: 'preload.js',
+									format: 'iife',
+									globals: (id: string) => `require('${id}')`,
 								},
 							},
 					  },

@@ -1,6 +1,6 @@
 import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { NodeBuiltin, createPreloadFilter, isUndef, transformFilter } from './helper';
+import { NodeBuiltin, createPreloadFilter, isUndef, transformFilter, ReplaceAlias, createReplaceAlias } from './helper';
 import { BUILD_UTOOLS_MODE } from './constant';
 import { RequiredOptions } from './options';
 import transformExternal from './transform/external';
@@ -17,6 +17,7 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 	const filter = createPreloadFilter(path);
 
 	let config: ResolvedConfig;
+	let replaceAlias: ReplaceAlias = (path) => path;
 
 	return {
 		name: 'vite:utools-preload',
@@ -49,12 +50,15 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 
 		configResolved: (c) => {
 			config = c;
+			replaceAlias = createReplaceAlias(c.resolve.alias);
 		},
 
 		transform: (code, id) =>
 			!transformFilter(id)
 				? code
-				: transformExternal(code, (sourcePath) => (filter(resolve(id, '../', sourcePath)) ? name : void 0)),
+				: transformExternal(code, (sourcePath) =>
+						filter(resolve(id, '../', replaceAlias(sourcePath))) ? name : void 0
+				  ),
 
 		handleHotUpdate: async ({ file }) => {
 			if (watch && filter(file)) await viteBuild();

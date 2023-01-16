@@ -2,6 +2,8 @@ import { types, NodePath } from '@babel/core';
 import { parse } from '@babel/parser';
 import { createFilter } from '@rollup/pluginutils';
 import { builtinModules } from 'node:module';
+import { resolve } from 'path';
+import { AliasOptions, Alias } from 'vite';
 
 const Modules = [
 	...builtinModules,
@@ -49,3 +51,18 @@ export const joinVarName = (varName: string, prop: string) => `${varName}['${pro
 
 export const replaceByTemplate = <T>(path: NodePath<T>, template: string) =>
 	path.replaceWithMultiple(genStatements(template));
+
+const isMatch = (source: string, find: string | RegExp) =>
+	isString(find) ? find === source || source.startsWith(`${find}/`) : source.match(find);
+
+export type ReplaceAlias = (path: string) => string;
+export const createReplaceAlias = (aliasOpts: AliasOptions): ReplaceAlias => {
+	const aliasEntires: Alias[] = Array.isArray(aliasOpts)
+		? aliasOpts
+		: Object.entries(aliasOpts).map(([find, replacement]) => ({ find, replacement }));
+
+	return (path) => {
+		const entry = aliasEntires.find(({ find }) => isMatch(path, find));
+		return entry ? resolve(cwd, path.replace(entry.find, entry.replacement)) : path;
+	};
+};

@@ -1,9 +1,10 @@
-import { types, NodePath } from '@babel/core';
-import { parse } from '@babel/parser';
-import { createFilter } from '@rollup/pluginutils';
 import { builtinModules } from 'node:module';
 import { resolve } from 'path';
-import { AliasOptions, Alias } from 'vite';
+import { Alias, AliasOptions } from 'vite';
+
+import { NodePath, types } from '@babel/core';
+import { parse } from '@babel/parser';
+import { createFilter } from '@rollup/pluginutils';
 
 const Modules = [
 	...builtinModules,
@@ -65,4 +66,11 @@ export const createReplaceAlias = (aliasOpts: AliasOptions): ReplaceAlias => {
 		const entry = aliasEntires.find(({ find }) => isMatch(path, find));
 		return entry ? resolve(cwd, path.replace(entry.find, entry.replacement)) : path;
 	};
+};
+
+export const getModuleName = (id: string) => {
+	const lastIndex = id.lastIndexOf('node_modules');
+	if (!~lastIndex) return void 0;
+
+	return id.slice(lastIndex + 'node_modules/'.length).match(/^(\S+?)\//)?.[1];
 };

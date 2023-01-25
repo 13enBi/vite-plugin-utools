@@ -1,12 +1,13 @@
 import { createPackage } from 'asar';
-import { resolve as pathResolve, basename, isAbsolute } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
-import { unlink, mkdir, writeFile } from 'fs/promises';
-import { createGzip } from 'zlib';
-import { BuildUpxOptions, NestedRequired, PluginOptions, RequiredOptions } from './options';
-import { ResolvedConfig } from 'vite';
-import { Data, isString, cwd } from './helper';
+import { mkdir, unlink, writeFile } from 'fs/promises';
+import { basename, isAbsolute, resolve as pathResolve } from 'path';
 import colors from 'picocolors';
+import { ResolvedConfig } from 'vite';
+import { createGzip } from 'zlib';
+
+import { cwd, Data, isString } from './helper';
+import { BuildUpxOptions, NestedRequired, PluginOptions, RequiredOptions } from './options';
 
 const requiredKeys = [
 	'name',

@@ -1,5 +1,6 @@
-import { transformAsync, PluginObj, types as t } from '@babel/core';
+import { PluginObj, transformAsync, types as t } from '@babel/core';
 import generator from '@babel/generator';
+
 import { ensureHoisted, genStatements, joinVarName, replaceByTemplate } from '../helper';
 
 const getPatternNames = (pattern: t.PatternLike | t.LVal | t.Expression | null): string[] => {

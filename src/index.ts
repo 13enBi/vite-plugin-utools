@@ -1,5 +1,6 @@
 import { Plugin } from 'vite';
-import { resolveOptions, Options } from './options';
+
+import { Options, resolveOptions } from './options';
 import { apiExternalPlugin, buildUpxPlugin, preloadPlugin } from './plugins';
 
 export const viteUtoolsPlugin = (options: Options = {}): Plugin[] => {

@@ -1,11 +1,20 @@
-import { Plugin, build as viteBuild, ResolvedConfig } from 'vite';
 import { resolve } from 'path';
-import { NodeBuiltin, createPreloadFilter, isUndef, transformFilter, ReplaceAlias, createReplaceAlias } from './helper';
+import { build as viteBuild, Plugin, ResolvedConfig } from 'vite';
+
+import buildUpx from './buildUpx';
 import { BUILD_UTOOLS_MODE } from './constant';
+import {
+	createPreloadFilter,
+	createReplaceAlias,
+	getModuleName,
+	isUndef,
+	NodeBuiltin,
+	ReplaceAlias,
+	transformFilter,
+} from './helper';
 import { RequiredOptions } from './options';
 import transformExternal from './transform/external';
 import transformPreload from './transform/preload';
-import buildUpx from './buildUpx';
 
 export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugin => {
 	if (!preloadOptions)
@@ -24,11 +33,13 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 
 		config: (userConfig) => ({
 			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
+
 			build:
 				userConfig.mode !== BUILD_UTOOLS_MODE
 					? void 0
 					: {
 							// TODO: use build lib options ?
+							minify: false,
 							emptyOutDir: false,
 							rollupOptions: {
 								external: [...NodeBuiltin],
@@ -40,9 +51,12 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 								],
 								input: path,
 								output: {
+									inlineDynamicImports: false,
 									entryFileNames: 'preload.js',
-									format: 'iife',
+									format: 'cjs',
 									globals: (id: string) => `require('${id}')`,
+									chunkFileNames: 'node_modules/[name].js',
+									manualChunks: (id) => getModuleName(id) || 'vendor',
 								},
 							},
 					  },

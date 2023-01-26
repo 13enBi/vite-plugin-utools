@@ -35,14 +35,16 @@ export default {
 };
 ```
  
-## preload.js 支持 ESM
+## preload.js 支持 ESM & 支持引入三方库
 
 ```js
 // preload.js
 
 import { readFileSync } from 'fs';
+import _fdir from 'fdir'
 
 export const readConfig = () => readFileSync('./config.json');
+export const fdir = _fdir
 ```
 
 其他文件从 preload.js 中导入
@@ -58,11 +60,13 @@ console.log(readConfig());
 ```js
 // preload.js
 
-window.preload = {};
+window.preload = Object.create(null);
 
 const { readFileSync } = require('fs')
+const _fidr = require('fdir')
 
 window.preload.readConfig =  () => readFileSync('./config.json');
+window.preload.fdir = _fdir;
 ```
 
 ```js

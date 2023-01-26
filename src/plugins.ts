@@ -33,33 +33,6 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 
 		config: (userConfig) => ({
 			base: isUndef(userConfig.base) || userConfig.base === '/' ? '' : userConfig.base,
-
-			build:
-				userConfig.mode !== BUILD_UTOOLS_MODE
-					? void 0
-					: {
-							// TODO: use build lib options ?
-							minify: false,
-							emptyOutDir: false,
-							rollupOptions: {
-								external: [...NodeBuiltin],
-								plugins: [
-									{
-										name: 'preload',
-										transform: (code, id) => (filter(id) ? transformPreload(code, name) : code),
-									},
-								],
-								input: path,
-								output: {
-									inlineDynamicImports: false,
-									entryFileNames: 'preload.js',
-									format: 'cjs',
-									globals: (id: string) => `require('${id}')`,
-									chunkFileNames: 'node_modules/[name].js',
-									manualChunks: (id) => getModuleName(id) || 'vendor',
-								},
-							},
-					  },
 		}),
 
 		configResolved: (c) => {
@@ -79,10 +52,33 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 		},
 
 		closeBundle: async () => {
-			if (config.mode !== BUILD_UTOOLS_MODE)
-				await viteBuild({
-					mode: BUILD_UTOOLS_MODE,
-				});
+			if (config.mode === BUILD_UTOOLS_MODE) return;
+
+			await viteBuild({
+				mode: BUILD_UTOOLS_MODE,
+				build: {
+					minify: false,
+					emptyOutDir: false,
+					rollupOptions: {
+						external: [...NodeBuiltin],
+						plugins: [
+							{
+								name: 'preload',
+								transform: (code, id) => (filter(id) ? transformPreload(code, name) : code),
+							},
+						],
+						input: path,
+						output: {
+							inlineDynamicImports: false,
+							entryFileNames: 'preload.js',
+							format: 'cjs',
+							globals: (id: string) => `require('${id}')`,
+							chunkFileNames: 'node_modules/[name].js',
+							manualChunks: (id) => getModuleName(id) || 'vendor',
+						},
+					},
+				},
+			});
 		},
 	};
 };

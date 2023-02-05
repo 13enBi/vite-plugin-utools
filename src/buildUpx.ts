@@ -1,4 +1,4 @@
-import { createReadStream, createWriteStream } from 'node:fs';
+import { createReadStream, createWriteStream, readFileSync } from 'node:fs';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, resolve as pathResolve } from 'node:path';
 import { createGzip } from 'node:zlib';
@@ -37,7 +37,7 @@ const formatPluginOptions = (pluginOptions: Data, needPreload: boolean) => {
 
 const getPluginOptions = (path: string) => {
 	const requirePath = isAbsolute(path) ? path : pathResolve(cwd, path);
-	const pluginOptions = require(requirePath);
+	const pluginOptions = JSON.parse(readFileSync(requirePath, 'utf-8'));
 	validatePluginOptions(pluginOptions);
 
 	return pluginOptions;

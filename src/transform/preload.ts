@@ -1,7 +1,10 @@
 import { PluginObj, transformAsync, types as t } from '@babel/core';
-import generator from '@babel/generator';
+import { CodeGenerator, GeneratorOptions } from '@babel/generator';
 
 import { ensureHoisted, genStatements, joinVarName, replaceByTemplate } from '../helper';
+
+const generator = (ast: t.Node, options?: GeneratorOptions, code?: string) =>
+	new CodeGenerator(ast, options, code).generate().code;
 
 const getPatternNames = (pattern: t.PatternLike | t.LVal | t.Expression | null): string[] => {
 	if (!pattern) return [];
@@ -37,12 +40,12 @@ const generatorVariable = (decl: t.VariableDeclarator, varName: string, kind = '
 
 	if (!init) return '';
 
-	if (t.isIdentifier(id)) return `${joinVarName(varName, id.name)} = ${generator(init).code}`;
+	if (t.isIdentifier(id)) return `${joinVarName(varName, id.name)} = ${generator(init)}`;
 
 	if (t.isArrayPattern(id) || t.isObjectPattern(id)) {
 		const names = getPatternNames(id);
 
-		return `${kind} ${generator(decl).code}; \
+		return `${kind} ${generator(decl)}; \
         ${names.map((name) => `${joinVarName(varName, name)} = ${name}`).join(',')}`;
 	}
 };
@@ -70,7 +73,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 					// export function func(){} -> varName.func = function(){}
 					case 'FunctionDeclaration': {
 						const funcName = declaration.id?.name || '';
-						const code = `${joinVarName(varName, funcName)} = ${generator(declaration).code};`;
+						const code = `${joinVarName(varName, funcName)} = ${generator(declaration)};`;
 						replaceByTemplate(path, code);
 
 						return;
@@ -93,10 +96,7 @@ export const transformExportToAssign = (varName: string): PluginObj => {
 
 			ExportDefaultDeclaration: (path) => {
 				// export default ... -> varName.default = ...
-				replaceByTemplate(
-					path,
-					`${joinVarName(varName, 'default')} = ${generator(path.node.declaration).code};`
-				);
+				replaceByTemplate(path, `${joinVarName(varName, 'default')} = ${generator(path.node.declaration)};`);
 			},
 
 			Program: {

@@ -1,10 +1,11 @@
+import { createReadStream, createWriteStream } from 'node:fs';
+import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { basename, isAbsolute, resolve as pathResolve } from 'node:path';
+import { createGzip } from 'node:zlib';
+
 import { createPackage } from 'asar';
-import { createReadStream, createWriteStream } from 'fs';
-import { mkdir, unlink, writeFile } from 'fs/promises';
-import { basename, isAbsolute, resolve as pathResolve } from 'path';
 import colors from 'picocolors';
 import { ResolvedConfig } from 'vite';
-import { createGzip } from 'zlib';
 
 import { cwd, Data, isString } from './helper';
 import { BuildUpxOptions, NestedRequired, PluginOptions, RequiredOptions } from './options';

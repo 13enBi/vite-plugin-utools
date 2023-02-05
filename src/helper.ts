@@ -1,5 +1,6 @@
 import { builtinModules } from 'node:module';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
+
 import { Alias, AliasOptions } from 'vite';
 
 import { NodePath, types } from '@babel/core';

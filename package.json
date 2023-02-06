@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-utools",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Utools for Vite",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

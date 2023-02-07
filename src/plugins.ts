@@ -1,4 +1,5 @@
-import { resolve } from 'path';
+import { dirname } from 'path';
+import resolveModule from 'resolve';
 import { build as viteBuild, Plugin, ResolvedConfig } from 'vite';
 
 import buildUpx from './buildUpx';
@@ -10,6 +11,7 @@ import {
 	isUndef,
 	NodeBuiltin,
 	ReplaceAlias,
+	RESOLVE_MODULE_EXTENSIONS,
 	transformFilter,
 } from './helper';
 import { RequiredOptions } from './options';
@@ -40,12 +42,26 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 			replaceAlias = createReplaceAlias(c.resolve.alias);
 		},
 
-		transform: (code, id) =>
-			!transformFilter(id)
-				? code
-				: transformExternal(code, (sourcePath) =>
-						filter(resolve(id, '../', replaceAlias(sourcePath))) ? name : void 0
-				  ),
+		transform: (code, id) => {
+			if (!transformFilter(id)) return code;
+
+			const resolve = (sourcePath: string) => {
+				try {
+					return resolveModule.sync(sourcePath, {
+						basedir: dirname(id),
+						extensions: RESOLVE_MODULE_EXTENSIONS,
+					});
+				} catch (_) {
+					return '';
+				}
+			};
+
+			return transformExternal(code, (sourcePath) => {
+				const resolvedPath = resolve(replaceAlias(sourcePath));
+
+				return filter(resolvedPath) ? name : void 0;
+			});
+		},
 
 		handleHotUpdate: async ({ file }) => {
 			if (watch && filter(file)) await viteBuild();

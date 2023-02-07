@@ -1,6 +1,6 @@
 import { createReadStream, createWriteStream, readFileSync } from 'node:fs';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import { basename, isAbsolute, resolve as pathResolve } from 'node:path';
+import { basename, isAbsolute, resolve as resolvePath } from 'node:path';
 import { createGzip } from 'node:zlib';
 
 import { createPackage } from 'asar';
@@ -36,7 +36,7 @@ const formatPluginOptions = (pluginOptions: Data, needPreload: boolean) => {
 };
 
 const getPluginOptions = (path: string) => {
-	const requirePath = isAbsolute(path) ? path : pathResolve(cwd, path);
+	const requirePath = isAbsolute(path) ? path : resolvePath(cwd, path);
 	const pluginOptions = JSON.parse(readFileSync(requirePath, 'utf-8'));
 	validatePluginOptions(pluginOptions);
 
@@ -57,10 +57,10 @@ const generateOutName = (temp: string, pluginOptions: PluginOptions) =>
 const prepareOutDir = async (buildOptions: NestedRequired<BuildUpxOptions>, pluginOptions: PluginOptions) => {
 	await mkdir(buildOptions.outDir, { recursive: true });
 
-	return pathResolve(buildOptions.outDir, generateOutName(buildOptions.outName, pluginOptions));
+	return resolvePath(buildOptions.outDir, generateOutName(buildOptions.outName, pluginOptions));
 };
 
-const TEMPORARY_DEST = pathResolve(cwd, `./.utools_${Math.random()}`);
+const TEMPORARY_DEST = resolvePath(cwd, `./.utools_${Math.random()}`);
 
 const doBuild = async (input: string, out: string) => {
 	await createPackage(input, TEMPORARY_DEST);

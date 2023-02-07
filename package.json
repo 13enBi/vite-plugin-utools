@@ -38,6 +38,7 @@
 		"@types/babel__core": "^7.1.19",
 		"@types/babel__generator": "^7.6.4",
 		"@types/node": "^16.11.65",
+		"@types/resolve": "^1.20.2",
 		"bumpp": "^7.2.0",
 		"tsup": "^5.12.9",
 		"typescript": "^4.8.4",
@@ -49,6 +50,7 @@
 		"@babel/parser": "^7.19.4",
 		"@rollup/pluginutils": "^4.2.1",
 		"asar": "^3.2.0",
-		"picocolors": "^1.0.0"
+		"picocolors": "^1.0.0",
+		"resolve": "^1.22.1"
 	}
 }

@@ -37,6 +37,8 @@ export const ensureHoisted = (statements: types.Statement[]) =>
 		node._blockHoist = 3;
 	});
 
+export const RESOLVE_MODULE_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.mts', '.cjs', '.cts', '.vue'];
+
 const includeRE = /\.([jt]sx?|vue)$/i;
 export const transformFilter = createFilter(includeRE, 'node_modules');
 

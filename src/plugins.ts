@@ -1,6 +1,6 @@
 import { dirname } from 'path';
 import resolveModule from 'resolve';
-import { build as viteBuild, Plugin, ResolvedConfig } from 'vite';
+import { build as viteBuild, Plugin, ResolvedConfig, transformWithEsbuild } from 'vite';
 
 import buildUpx from './buildUpx';
 import { BUILD_UTOOLS_MODE } from './constant';
@@ -24,7 +24,7 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 			name: 'vite:utools-preload',
 		};
 
-	const { path, watch, name } = preloadOptions;
+	const { path, watch, name, minify } = preloadOptions;
 	const filter = createPreloadFilter(path);
 
 	let config: ResolvedConfig;
@@ -81,6 +81,21 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 							{
 								name: 'preload',
 								transform: (code, id) => (filter(id) ? transformPreload(code, name) : code),
+							},
+							minify && {
+								name: 'minify',
+								renderChunk: {
+									order: 'post',
+									handler: (code, chunk) =>
+										chunk.fileName === 'preload.js'
+											? code
+											: transformWithEsbuild(code, chunk.fileName, {
+													minify: false,
+													minifyIdentifiers: true,
+													minifySyntax: true,
+													minifyWhitespace: true,
+											  }),
+								},
 							},
 						],
 						input: path,

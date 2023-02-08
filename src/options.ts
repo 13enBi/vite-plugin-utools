@@ -4,6 +4,7 @@ export interface PreloadOptions {
 	path?: string;
 	watch?: boolean;
 	name?: string;
+	minify?: boolean;
 }
 
 export interface PluginOptions {
@@ -41,6 +42,7 @@ const defaultOptions: RequiredOptions = {
 		path: './src/preload.ts',
 		watch: true,
 		name: 'window.preload',
+		minify: true,
 	},
 	buildUpx: {
 		pluginPath: './plugin.json',

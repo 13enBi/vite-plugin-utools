@@ -60,7 +60,7 @@ const isMatch = (source: string, find: string | RegExp) =>
 	isString(find) ? find === source || source.startsWith(`${find}/`) : source.match(find);
 
 export type ReplaceAlias = (path: string) => string;
-export const createReplaceAlias = (aliasOpts: AliasOptions): ReplaceAlias => {
+export const createReplaceAlias = (aliasOpts: AliasOptions = []): ReplaceAlias => {
 	const aliasEntires: Alias[] = Array.isArray(aliasOpts)
 		? aliasOpts
 		: Object.entries(aliasOpts).map(([find, replacement]) => ({ find, replacement }));

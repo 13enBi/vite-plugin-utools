@@ -105,7 +105,7 @@ export const preloadPlugin = (preloadOptions: RequiredOptions['preload']): Plugi
 							format: 'cjs',
 							globals: (id: string) => `require('${id}')`,
 							chunkFileNames: 'node_modules/[name].js',
-							manualChunks: (id) => getModuleName(id) || 'vendor',
+							manualChunks: (id) => (filter(id) ? 'preload' : getModuleName(id) || 'vendor'),
 						},
 					},
 				},

@@ -3,7 +3,7 @@ import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, resolve as resolvePath } from 'node:path';
 import { createGzip } from 'node:zlib';
 
-import { createPackage } from 'asar';
+import { createPackage } from '@electron/asar';
 import colors from 'picocolors';
 import { ResolvedConfig } from 'vite';
 

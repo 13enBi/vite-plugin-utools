@@ -42,14 +42,14 @@
 		"bumpp": "^7.2.0",
 		"tsup": "^5.12.9",
 		"typescript": "^4.9.5",
-		"vite": "^3.2.5"
+		"vite": "^4.2.1"
 	},
 	"dependencies": {
 		"@babel/core": "^7.19.3",
 		"@babel/generator": "^7.19.5",
 		"@babel/parser": "^7.19.4",
+		"@electron/asar": "^3.2.3",
 		"@rollup/pluginutils": "^4.2.1",
-		"asar": "^3.2.0",
 		"picocolors": "^1.0.0",
 		"resolve": "^1.22.1"
 	}
